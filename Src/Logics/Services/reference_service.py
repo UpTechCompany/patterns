@@ -4,7 +4,7 @@ from Src.reference import reference
 from Src.Logics.storage_observer import storage_observer
 from Src.Models.event_type import event_type
 from Src.Logics.Services.post_processing_service import post_processing_service
-
+from Src.Models.log_type_model import log_type
 #
 # Сервис для выполнения CRUD операций
 #
@@ -24,6 +24,9 @@ class reference_service(service):
         found = list(filter(lambda x: x.id == item.id , self.data))     
         if len(found) > 0:
             return False
+
+        storage_observer.raise_event(event_type.make_log(log_type.log_type_debug(), "добавление номенклатуры",
+                                                         "nomenclature_service.py/add_nom"))
         
         self.data.append(item)
         return True
@@ -41,9 +44,10 @@ class reference_service(service):
         # Найти нужный наблюдатель и вызвать событие        
         observer_item = storage_observer.get( storage_observer.post_processing_service_key() )
         observer_item.nomenclature = item
-        storage_observer.raise_event(  event_type.deleted_nomenclature()  )    
-
-	# Удалить элемент
+        storage_observer.raise_event(  event_type.deleted_nomenclature()  )
+        storage_observer.raise_event(event_type.make_log(log_type.log_type_debug(), "удаление номенклатуры",
+                                                         "nomenclature_service.py/delete_nom"))
+	    # Удалить элемент
         self.data.remove(item)
         return True
 
@@ -58,12 +62,16 @@ class reference_service(service):
         
         self.delete(found[0])
         self.add(item)
+        storage_observer.raise_event(event_type.make_log(log_type.log_type_debug(), "изменение номенклатуры",
+                                                         "nomenclature_service.py/change_nome"))
         return True
     
     def get(self) -> list:
         """
             Вернуть список 
         """
+        storage_observer.raise_event(
+            event_type.make_log(log_type.log_type_debug(), "получение номенклатуры", "nomenclature_service.py/get_nom"))
         return self.data
     
     def get_item(self, id: str) -> reference:
